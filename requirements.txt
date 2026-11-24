@@ -1,0 +1,16 @@
+# 运行依赖（Manim CE 需要 pycairo/manimpango，Windows 上有 cp312 预编译 wheel）
+manim>=0.19
+pydantic>=2.7
+openai>=1.40
+edge-tts>=6.1
+python-dotenv>=1.0
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+typer>=0.12
+rich>=13.7
+httpx>=0.27
+numpy>=1.26
+pillow>=10.0
+# 开发依赖
+pytest>=8.0

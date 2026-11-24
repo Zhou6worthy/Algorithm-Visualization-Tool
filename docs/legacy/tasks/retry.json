@@ -1,0 +1,32 @@
+{
+  "batch_name": "demo_retry",
+  "defaults": {
+    "render_quality": "high",
+    "tts": true,
+    "theme": "dark",
+    "steps_per_segment": 4
+  },
+  "tasks": [
+    {
+      "id": "demo-quick-nl",
+      "prompt": "请生成快速排序的教学视频，选择第一个元素作为 Pivot，使用数组 [8, 3, 5, 1, 9, 2]。"
+    },
+    {
+      "id": "demo-dijkstra",
+      "algorithm": "dijkstra",
+      "title": "Dijkstra 最短路径",
+      "params": {
+        "nodes": ["A", "B", "C", "D", "E", "F"],
+        "edges": [["A", "B", 4], ["A", "C", 2], ["B", "C", 1], ["B", "D", 5], ["C", "D", 8], ["C", "E", 10], ["D", "E", 2], ["D", "F", 6], ["E", "F", 3]],
+        "start": "A",
+        "target": "F"
+      }
+    },
+    {
+      "id": "demo-merge",
+      "algorithm": "merge_sort",
+      "title": "归并排序：分治与合并",
+      "params": { "array": [8, 3, 5, 1, 9, 2, 7, 4] }
+    }
+  ]
+}

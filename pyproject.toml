@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "algoviz"
+version = "0.1.0"
+description = "AI 算法教学视频批量生成工厂：算法执行追踪 + Manim 渲染 + TTS + FFmpeg"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "AlgoViz" }]
+dependencies = [
+    "manim>=0.19",
+    "pydantic>=2.7",
+    "openai>=1.40",
+    "edge-tts>=6.1",
+    "python-dotenv>=1.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+    "typer>=0.12",
+    "rich>=13.7",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+algoviz = "algoviz.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["algoviz*"]
+
+[tool.setuptools.package-data]
+algoviz = ["api/static/*", "api/static/workbench/*", "api/static/workbench/assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AlgoViz · 算法视频工厂</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">AV</div>
+      <div>
+        <h1>AlgoViz</h1>
+        <p>算法教学视频批量生成工厂</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="pill" id="aiPill" type="button" title="查看大模型状态">
+        <span class="dot"></span><span id="aiPillText">检测中…</span>
+      </button>
+      <button class="btn ghost" id="aiSettingsBtn" type="button">AI 设置</button>
+      <a class="btn ghost" href="/docs" target="_blank" rel="noreferrer">API 文档</a>
+    </div>
+  </header>
+
+  <div id="aiBanner" class="ai-banner hidden"></div>
+
+  <main class="layout">
+    <section class="panel create-panel">
+      <div class="panel-head">
+        <div>
+          <h2>新建视频</h2>
+          <p>真实执行追踪 → 统一事件 → Manim → 配音字幕</p>
+        </div>
+        <span class="server-dot" id="serverDot" title="服务状态"></span>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="nl" type="button">自然语言</button>
+        <button class="tab" data-tab="param" type="button">参数化</button>
+      </div>
+
+      <form id="createForm" autocomplete="off">
+        <div class="tab-pane" id="pane-nl">
+          <label class="field">
+            <span>描述你的需求</span>
+            <textarea id="prompt" rows="4" placeholder="例如：请生成快速排序的教学视频，选择第一个元素作为 Pivot，使用数组 [8, 3, 5, 1, 9, 2]"></textarea>
+          </label>
+          <div class="chips">
+            <button class="chip" type="button" data-prompt="请生成快速排序的教学视频，选择第一个元素作为 Pivot，使用数组 [8, 3, 5, 1, 9, 2]。">快速排序</button>
+            <button class="chip" type="button" data-prompt="二分查找，数组 [1, 3, 5, 7, 9, 11, 13]，目标值为 7">二分查找</button>
+            <button class="chip" type="button" data-prompt="对二叉搜索树 [8, 3, 10, 1, 6, 14, 4, 7, 13] 进行中序遍历">中序遍历</button>
+            <button class="chip" type="button" data-prompt="用 BFS 遍历图，起点 A，边 A-B、A-C、B-D、C-E、D-F、E-F">BFS 图</button>
+            <button class="chip" type="button" data-prompt="0-1 背包，重量 [2, 3, 4, 5]，价值 [3, 4, 5, 6]，容量 8">0-1 背包</button>
+          </div>
+        </div>
+
+        <div class="tab-pane hidden" id="pane-param">
+          <label class="field">
+            <span>算法</span>
+            <select id="algorithmSelect"></select>
+          </label>
+          <div id="paramFields" class="param-fields"></div>
+          <p class="hint">数组/序列用逗号分隔；图边为 JSON，例如 <code>[["A","B",4]]</code>。</p>
+        </div>
+
+        <label class="field">
+          <span>标题（可选）</span>
+          <input id="titleInput" type="text" placeholder="留空则自动生成">
+        </label>
+
+        <div class="grid-options">
+          <label class="field">
+            <span>画质</span>
+            <select id="quality">
+              <option value="high">1080p（正式）</option>
+              <option value="medium">720p</option>
+              <option value="low">480p（调试）</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>每段步骤</span>
+            <input id="steps" type="number" min="1" max="8" value="3">
+          </label>
+          <label class="field">
+            <span>主题</span>
+            <select id="theme"><option value="dark">深色</option><option value="light">浅色</option></select>
+          </label>
+          <label class="field">
+            <span>配音</span>
+            <select id="voice" data-tts>
+              <option value="zh-CN-XiaoxiaoNeural">晓晓（女声）</option>
+              <option value="zh-CN-YunxiNeural">云希（男声）</option>
+              <option value="zh-CN-YunyangNeural">云扬（男声）</option>
+            </select>
+          </label>
+        </div>
+        <label class="check-row"><input id="tts" type="checkbox" checked> <span>生成中文配音（Edge TTS）</span></label>
+
+        <button class="btn primary big" id="submitBtn" type="submit">生成视频</button>
+        <div id="formHint" class="submit-hint"></div>
+      </form>
+
+      <details class="batch-box">
+        <summary>批量任务（JSON）</summary>
+        <textarea id="batchJson" rows="6" placeholder='{
+  "defaults": {"render_quality": "medium", "tts": true},
+  "tasks": [
+    {"algorithm": "bubble_sort", "params": {"array": [5, 3, 8, 1]}},
+    {"prompt": "用 BFS 遍历图，起点 A，边 A-B、B-C"}
+  ]
+}'></textarea>
+        <div class="batch-actions">
+          <input type="file" id="batchFile" accept=".json,application/json">
+          <button class="btn ghost" id="batchBtn" type="button">提交批次</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="jobs-panel">
+      <div class="panel-head jobs-head">
+        <div>
+          <h2>任务列表</h2>
+          <p id="jobCount">0 个任务</p>
+        </div>
+        <div class="jobs-tools">
+          <div class="filters" id="filters">
+            <button type="button" class="filter active" data-filter="all">全部</button>
+            <button type="button" class="filter" data-filter="active">进行中</button>
+            <button type="button" class="filter" data-filter="completed">已完成</button>
+            <button type="button" class="filter" data-filter="failed">失败</button>
+          </div>
+          <button class="btn ghost" id="refreshBtn" type="button">刷新</button>
+        </div>
+      </div>
+      <div id="jobList" class="job-list">
+        <div class="empty">加载中…</div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="aiDialog" class="dialog">
+    <form method="dialog" class="dialog-inner" id="aiForm">
+      <div class="dialog-head">
+        <h2>大模型设置</h2>
+        <button class="icon-btn" value="cancel" aria-label="关闭">×</button>
+      </div>
+      <p class="dialog-sub">默认使用 DeepSeek（OpenAI 兼容协议）。Key 只写入本机 <code id="envFileLabel">.env</code>，接口不会回显完整 Key。</p>
+      <div class="ai-state" id="aiDialogState"></div>
+
+      <label class="field">
+        <span>API Key</span>
+        <input id="aiKey" type="password" placeholder="留空表示不修改；填入新 Key 后立即生效">
+      </label>
+      <div class="grid-options two">
+        <label class="field">
+          <span>模型</span>
+          <input id="aiModel" type="text" placeholder="deepseek-chat">
+        </label>
+        <label class="field">
+          <span>模式</span>
+          <select id="aiMode">
+            <option value="auto">auto：有 Key 就调用</option>
+            <option value="on">on：强制调用</option>
+            <option value="off">off：只用本地模板</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">
+        <span>Base URL</span>
+        <input id="aiBaseUrl" type="text" placeholder="https://api.deepseek.com">
+      </label>
+      <label class="check-row"><input id="clearKey" type="checkbox"> <span>清除已保存的 Key</span></label>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" id="testAiBtn">测试连接</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" id="closeAiBtn">关闭</button>
+        <button type="button" class="btn primary" id="saveAiBtn">保存设置</button>
+      </div>
+      <pre id="aiTestResult" class="test-result hidden"></pre>
+    </form>
+  </dialog>
+
+  <dialog id="videoDialog" class="dialog wide">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h2 id="videoTitle">视频预览</h2>
+        <button class="icon-btn" id="closeVideoBtn" aria-label="关闭">×</button>
+      </div>
+      <video id="videoPlayer" controls playsinline preload="metadata"></video>
+      <div class="video-links" id="videoLinks"></div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
